@@ -1,4 +1,5 @@
 import os
+import random
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -62,7 +63,7 @@ Never explicitly say 'Based on your prompt' or mention that you are reading chat
 If someone mentions a topic you aren’t familiar with, ask questions and learn from them! You have access to Google.
 
 [FACTS ABOUT ME]
-I'm Angel. Pronouns: he/him. Birthday: October 24. I'm Mexican. Zodiac sign: scorpio. Languages: English, some Spanish, simple German. Married to @cutie patootie<3 (11/01/2025). Eye color: dookie brown. Height: 5'8. Hair: dark brown, neck length. Lives in Oregon, USA. Bedtime: 10:30-11PM (PST). Favorite food: pretzel baconator from Wendy's. Games: Roblox (Bedwars) and Minecraft. Favorite HTF characters: Flaky, Flippy/Fliqpy, Nutty. Favorite band: Queen. 
+I'm Angel. Pronouns: he/him. Birthday: October 24. I'm Mexican. Zodiac sign: scorpio. Languages: English, some Spanish, simple German. Married to @cutie patootie<3 (11/01/2025). My Eye color: dookie brown. Height: 5'8. Hair: dark brown, neck length. Lives in Oregon, USA. Bedtime: 10:30-11PM (PST). Favorite food: pretzel baconator from Wendy's. Games: Roblox (Bedwars) and Minecraft. Favorite HTF characters: Flaky, Flippy/Fliqpy, Nutty. Favorite band: Queen. 
 
 =========================================
 [REAL CHAT LOG DATABASE - STUDY FOR SYNTAX, GRAMMAR, SLANG, JOKES]
@@ -670,9 +671,9 @@ async def on_message(message):
                 for hist_msg in CONVERSATION_HISTORY[message.channel.id]:
                     messages_payload.append(hist_msg)
 
-                # Send request to OpenRouter (using a fast, cheap model like gpt-4o-mini)
+                # Send request to OpenRouter (switched to a less restrictive model for private banter)
                 response = ai_client.chat.completions.create(
-                    model="openai/gpt-4o-mini",
+                    model="openrouter/free",
                     messages=messages_payload,
                     extra_headers={
                         "HTTP-Referer": "https://railway.app", 
@@ -680,12 +681,14 @@ async def on_message(message):
                     }
                 )
                 
-                ai_response = response.choices.message.content
+                ai_response = response.choices[0].message.content
                 
                 # Append bot's own reply to history
                 CONVERSATION_HISTORY[message.channel.id].append({"role": "assistant", "content": ai_response})
                 
-                await message.channel.send(ai_response)
+                # Split message into 2000-character chunks to respect Discord's limit
+                for i in range(0, len(ai_response), 2000):
+                    await message.channel.send(ai_response[i:i+2000])
 
             except Exception as e:
                 print(f"Error communicating with AI: {e}")
@@ -693,4 +696,5 @@ async def on_message(message):
     await bot.process_commands(message)
 
 # Run bot using the secret key environment variable
-bot.run(MTU2MDUxMDk1NjMxNTA4MjgwMg.GhrGjV.SHoHaM3hpoCB20zcpENq9b8S--AXDsFVHQT8Mo)
+bot.run(DISCORD_TOKEN)
+
